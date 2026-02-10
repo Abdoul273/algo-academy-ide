@@ -2,95 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
+    --background: 232 23% 18%;
+    --foreground: 226 64% 88%;
+    --card: 232 23% 20%;
+    --card-foreground: 226 64% 88%;
+    --popover: 232 23% 20%;
+    --popover-foreground: 226 64% 88%;
+    --primary: 217 92% 76%;
+    --primary-foreground: 232 23% 10%;
+    --secondary: 232 23% 23%;
+    --secondary-foreground: 226 64% 88%;
+    --muted: 233 23% 25%;
+    --muted-foreground: 228 24% 60%;
+    --accent: 267 84% 81%;
+    --accent-foreground: 232 23% 10%;
+    --destructive: 343 81% 75%;
+    --destructive-foreground: 232 23% 10%;
+    --border: 232 23% 26%;
+    --input: 232 23% 26%;
+    --ring: 217 92% 76%;
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --ide-sidebar: 240 21% 11%;
+    --ide-toolbar: 240 21% 13%;
+    --ide-editor: 232 23% 18%;
+    --ide-console: 240 21% 9%;
+    --ide-tab-active: 232 23% 18%;
+    --ide-tab-inactive: 232 23% 14%;
+    --ide-line-highlight: 232 23% 22%;
+    --ide-selection: 217 92% 76% / 0.15;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --syntax-keyword: 267 84% 81%;
+    --syntax-string: 115 54% 76%;
+    --syntax-number: 23 92% 75%;
+    --syntax-comment: 228 24% 45%;
+    --syntax-type: 217 92% 76%;
+    --syntax-function: 170 57% 73%;
+    --syntax-variable: 226 64% 88%;
+    --syntax-operator: 170 57% 73%;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 240 21% 11%;
+    --sidebar-foreground: 228 24% 72%;
+    --sidebar-primary: 217 92% 76%;
+    --sidebar-primary-foreground: 232 23% 10%;
+    --sidebar-accent: 232 23% 18%;
+    --sidebar-accent-foreground: 226 64% 88%;
+    --sidebar-border: 232 23% 22%;
+    --sidebar-ring: 217 92% 76%;
   }
 }
 
@@ -98,8 +58,50 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
   }
+}
+
+/* IDE-specific utilities */
+.ide-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.ide-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ide-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(228 24% 30%);
+  border-radius: 4px;
+}
+.ide-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(228 24% 40%);
+}
+
+.font-code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', monospace;
+}
+
+/* Smooth transitions for theme switching */
+.theme-transition {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Console animations */
+@keyframes blink-cursor {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.animate-blink {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.15s ease-out;
 }
