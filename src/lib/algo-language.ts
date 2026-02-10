@@ -11,9 +11,10 @@ export function registerAlgoLanguage(monaco: Monaco) {
       'algorithme', 'variables', 'variable', 'début', 'debut', 'fin',
       'si', 'alors', 'sinon', 'finsi',
       'tantque', 'faire', 'fintantque',
-      'pour', 'de', 'à', 'finpour', 'pas',
-      'écrire', 'ecrire', 'lire',
+      'pour', 'de', 'à', 'a', 'finpour', 'pas',
+      'écrire', 'ecrire', 'afficher', 'lire', 'saisir',
       'fonction', 'procédure', 'procedure', 'retourner',
+      'repeter', 'répéter', 'jusqua', 'jusqu',
     ],
     typeKeywords: [
       'entier', 'réel', 'reel', 'chaîne', 'chaine',
@@ -54,18 +55,20 @@ export function registerAlgoLanguage(monaco: Monaco) {
       };
 
       const suggestions = [
-        { label: 'Algorithme', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Algorithme ${1:Nom}\n\nVariables\n    ${2:x} : ${3:entier}\n\nDébut\n    ${0}\nFin', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Structure complète', range },
+        { label: 'Algorithme', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Algorithme ${1:Nom}\n\nVariables\n    ${2:x} : ${3:entier}\n\nDebut\n    ${0}\nFin', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Structure complete', range },
         { label: 'Si...FinSi', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Si (${1:condition}) alors\n    ${0}\nFinSi', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Condition', range },
         { label: 'Si...Sinon...FinSi', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Si (${1:condition}) alors\n    ${2}\nSinon\n    ${0}\nFinSi', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Condition avec sinon', range },
         { label: 'TantQue...FinTantQue', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'TantQue (${1:condition}) faire\n    ${0}\nFinTantQue', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Boucle tant que', range },
-        { label: 'Pour...FinPour', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Pour ${1:i} de ${2:1} à ${3:10} faire\n    ${0}\nFinPour', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Boucle pour', range },
-        { label: 'Écrire', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Écrire(${0})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Afficher', range },
+        { label: 'Pour...FinPour', kind: monaco.languages.CompletionItemKind.Snippet, insertText: 'Pour ${1:i} de ${2:1} a ${3:10} faire\n    ${0}\nFinPour', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Boucle pour', range },
+        { label: 'Ecrire', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Ecrire(${0})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Afficher (alias: Afficher)', range },
+        { label: 'Afficher', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Afficher(${0})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Afficher (alias: Ecrire)', range },
         { label: 'Lire', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Lire(${0})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Saisie utilisateur', range },
-        ...['entier', 'réel', 'chaîne', 'booléen', 'caractère'].map(t => ({
+        { label: 'Saisir', kind: monaco.languages.CompletionItemKind.Function, insertText: 'Saisir(${0})', insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet, detail: 'Saisie utilisateur (alias: Lire)', range },
+        ...['entier', 'reel', 'chaine', 'booleen', 'caractere'].map(t => ({
           label: t, kind: monaco.languages.CompletionItemKind.TypeParameter, insertText: t, detail: 'Type', range,
         })),
-        ...['Variables', 'Début', 'Fin', 'Si', 'Alors', 'Sinon', 'FinSi', 'TantQue', 'Faire', 'FinTantQue', 'Pour', 'De', 'FinPour'].map(k => ({
-          label: k, kind: monaco.languages.CompletionItemKind.Keyword, insertText: k, detail: 'Mot-clé', range,
+        ...['Variables', 'Debut', 'Fin', 'Si', 'Alors', 'Sinon', 'FinSi', 'TantQue', 'Faire', 'FinTantQue', 'Pour', 'De', 'FinPour'].map(k => ({
+          label: k, kind: monaco.languages.CompletionItemKind.Keyword, insertText: k, detail: 'Mot-cle', range,
         })),
       ];
 
