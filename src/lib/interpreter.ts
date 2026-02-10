@@ -15,11 +15,12 @@ const KEYWORDS = new Set([
   'si', 'alors', 'sinon', 'finsi',
   'tantque', 'faire', 'fintantque',
   'pour', 'de', 'à', 'a', 'finpour', 'pas',
-  'écrire', 'ecrire', 'lire',
+  'écrire', 'ecrire', 'afficher', 'lire', 'saisir',
   'fonction', 'procédure', 'procedure', 'retourner',
-  'entier', 'réel', 'reel', 'chaîne', 'chaine', 'chaîne de caractères',
+  'entier', 'réel', 'reel', 'chaîne', 'chaine', 'chaine de caractères',
   'booléen', 'booleen', 'caractère', 'caractere',
   'tableau', 'et', 'ou', 'non', 'vrai', 'faux', 'mod', 'div',
+  'repeter', 'répéter', 'jusqua', 'jusqu',
 ]);
 
 export function tokenize(code: string): Token[] {
@@ -81,6 +82,19 @@ export interface InterpreterCallbacks {
   onLineExecuted?: (line: number) => void;
 }
 
+// Helper: normalize keyword (remove accents for matching)
+function isWriteCmd(kw: string): boolean {
+  return ['écrire', 'ecrire', 'afficher'].includes(kw);
+}
+
+function isReadCmd(kw: string): boolean {
+  return ['lire', 'saisir'].includes(kw);
+}
+
+function isBeginKW(kw: string): boolean {
+  return kw === 'début' || kw === 'debut';
+}
+
 export class AlgoInterpreter {
   private tokens: Token[];
   private pos = 0;
@@ -105,13 +119,18 @@ export class AlgoInterpreter {
     this.skipNL();
     const t = this.cur();
     if (t.type !== 'KEYWORD' || t.value !== val)
-      throw new Error(`Ligne ${t.line}: Attendu '${val}', trouvé '${t.value || t.type}'`);
+      throw new Error(`Ligne ${t.line}: Attendu '${val}', trouve '${t.value || t.type}'`);
     this.advance();
   }
 
   private isKW(val: string): boolean {
     this.skipNL();
     return this.cur().type === 'KEYWORD' && this.cur().value === val;
+  }
+
+  private isKWAny(vals: string[]): boolean {
+    this.skipNL();
+    return this.cur().type === 'KEYWORD' && vals.includes(this.cur().value);
   }
 
   private checkCancel() {
@@ -132,14 +151,14 @@ export class AlgoInterpreter {
       if (this.isKW('variables') || this.isKW('variable')) {
         this.advance();
         this.skipNL();
-        while (!this.isKW('début') && !this.isKW('debut') && this.cur().type !== 'EOF') {
+        while (!this.isKWAny(['début', 'debut']) && this.cur().type !== 'EOF') {
           this.parseVarDecl();
           this.skipNL();
         }
       }
 
       // Parse body
-      if (this.isKW('début') || this.isKW('debut')) {
+      if (this.isKWAny(['début', 'debut'])) {
         this.advance();
         await this.parseBody(['fin']);
         this.expectKW('fin');
@@ -207,8 +226,8 @@ export class AlgoInterpreter {
 
     if (t.type === 'KEYWORD') {
       const kw = t.value;
-      if (kw === 'écrire' || kw === 'ecrire') return this.parseWrite();
-      if (kw === 'lire') return this.parseLire();
+      if (isWriteCmd(kw)) return this.parseWrite();
+      if (isReadCmd(kw)) return this.parseLire();
       if (kw === 'si') return this.parseIf();
       if (kw === 'tantque') return this.parseWhile();
       if (kw === 'pour') return this.parseFor();
@@ -222,7 +241,7 @@ export class AlgoInterpreter {
   }
 
   private async parseWrite(): Promise<void> {
-    this.advance(); // skip écrire
+    this.advance(); // skip ecrire/afficher
     if (this.cur().type === 'LPAREN') this.advance();
     const parts: string[] = [];
     while (this.cur().type !== 'RPAREN' && this.cur().type !== 'NEWLINE' && this.cur().type !== 'EOF') {
@@ -236,7 +255,7 @@ export class AlgoInterpreter {
   }
 
   private async parseLire(): Promise<void> {
-    this.advance(); // skip lire
+    this.advance(); // skip lire/saisir
     if (this.cur().type === 'LPAREN') this.advance();
     const varName = this.cur().value;
     this.advance();
@@ -251,7 +270,7 @@ export class AlgoInterpreter {
       else if (tl === 'booléen' || tl === 'booleen') v.value = input.toLowerCase() === 'vrai';
       else v.value = input;
     } else {
-      this.variables.set(varName, { type: 'chaîne', value: input });
+      this.variables.set(varName, { type: 'chaine', value: input });
     }
     this.cb.onVariableChange?.(this.getVarValues());
   }
@@ -315,9 +334,8 @@ export class AlgoInterpreter {
 
       await this.parseBody(['fintantque']);
       iterations++;
-      if (iterations > MAX_ITERATIONS) throw new Error(`Boucle infinie détectée ligne ${this.cur().line}`);
+      if (iterations > MAX_ITERATIONS) throw new Error(`Boucle infinie detectee ligne ${this.cur().line}`);
 
-      // Skip fintantque to loop back
       if (this.isKW('fintantque')) {
         // don't consume it yet, we need to loop
       }
@@ -368,7 +386,7 @@ export class AlgoInterpreter {
       if (v) {
         v.value = val;
       } else {
-        this.variables.set(varName, { type: 'chaîne', value: val });
+        this.variables.set(varName, { type: 'chaine', value: val });
       }
       this.cb.onVariableChange?.(this.getVarValues());
     }

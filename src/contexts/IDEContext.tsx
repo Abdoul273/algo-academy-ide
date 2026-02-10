@@ -28,27 +28,27 @@ const DEFAULT_CODE = `Algorithme Exemple
 
 Variables
     x : entier
-    nom : chaîne
+    nom : chaine
     i : entier
 
-Début
-    Écrire("Bienvenue dans AlgoStudio !")
-    Écrire("Entrez votre nom :")
+Debut
+    Afficher("Bienvenue dans AlgoStudio !")
+    Afficher("Entrez votre nom :")
     Lire(nom)
-    Écrire("Bonjour ", nom, " !")
+    Afficher("Bonjour ", nom, " !")
 
     x ← 0
-    Pour i de 1 à 5 faire
+    Pour i de 1 a 5 faire
         x ← x + i
-        Écrire("Somme partielle : ", x)
+        Afficher("Somme partielle : ", x)
     FinPour
 
-    Écrire("Somme totale de 1 à 5 = ", x)
+    Afficher("Somme totale de 1 a 5 = ", x)
 
     Si (x > 10) alors
-        Écrire("La somme est supérieure à 10")
+        Afficher("La somme est superieure a 10")
     Sinon
-        Écrire("La somme est inférieure ou égale à 10")
+        Afficher("La somme est inferieure ou egale a 10")
     FinSi
 Fin`;
 
@@ -81,7 +81,7 @@ interface IDEContextType {
   waitingForInput: boolean;
   variables: Map<string, any>;
   currentLine: number | null;
-  sidebarPanel: 'files' | 'settings' | 'courses' | null;
+  sidebarPanel: 'files' | 'settings' | 'courses' | 'variables' | null;
 
   setActiveFileId: (id: string) => void;
   updateFileContent: (id: string, content: string) => void;
@@ -102,7 +102,7 @@ interface IDEContextType {
   setCurrentLine: (l: number | null) => void;
   inputResolverRef: React.MutableRefObject<((val: string) => void) | null>;
 
-  setSidebarPanel: (p: 'files' | 'settings' | 'courses' | null) => void;
+  setSidebarPanel: (p: 'files' | 'settings' | 'courses' | 'variables' | null) => void;
 }
 
 const IDEContext = createContext<IDEContextType | null>(null);
@@ -122,7 +122,7 @@ export function IDEProvider({ children }: { children: React.ReactNode }) {
   const [waitingForInput, setWaitingForInput] = useState(false);
   const [variables, setVariables] = useState<Map<string, any>>(new Map());
   const [currentLine, setCurrentLine] = useState<number | null>(null);
-  const [sidebarPanel, setSidebarPanel] = useState<'files' | 'settings' | 'courses' | null>('files');
+  const [sidebarPanel, setSidebarPanel] = useState<'files' | 'settings' | 'courses' | 'variables' | null>('files');
   const inputResolverRef = useRef<((val: string) => void) | null>(null);
 
   // Persist files
@@ -153,7 +153,7 @@ export function IDEProvider({ children }: { children: React.ReactNode }) {
     const newFile: FileTab = {
       id,
       name: name || `nouveau_${files.length + 1}.algo`,
-      content: `Algorithme Nouveau\n\nVariables\n\nDébut\n    \nFin`,
+      content: `Algorithme Nouveau\n\nVariables\n\nDebut\n    \nFin`,
       saved: false,
     };
     setFiles(prev => [...prev, newFile]);
@@ -164,7 +164,7 @@ export function IDEProvider({ children }: { children: React.ReactNode }) {
     setFiles(prev => {
       const next = prev.filter(f => f.id !== id);
       if (next.length === 0) {
-        const newFile: FileTab = { id: Date.now().toString(), name: 'nouveau.algo', content: `Algorithme Nouveau\n\nVariables\n\nDébut\n    \nFin`, saved: false };
+        const newFile: FileTab = { id: Date.now().toString(), name: 'nouveau.algo', content: `Algorithme Nouveau\n\nVariables\n\nDebut\n    \nFin`, saved: false };
         return [newFile];
       }
       return next;

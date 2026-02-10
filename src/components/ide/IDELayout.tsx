@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useIDE } from '@/contexts/IDEContext';
 import { AlgoInterpreter } from '@/lib/interpreter';
 import EditorPanel from './EditorPanel';
@@ -7,15 +7,32 @@ import SettingsDialog from './SettingsDialog';
 import {
   Play, Square, FilePlus, FolderOpen, Save,
   Settings, BookOpen, FileCode, X, Code2,
-  ChevronRight
+  ChevronRight, Copy, RotateCcw, Maximize2, Minimize2,
+  Timer, Hash, Braces
 } from 'lucide-react';
 
 export default function IDELayout() {
   const ide = useIDE();
   const interpreterRef = useRef<AlgoInterpreter | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [fullscreenEditor, setFullscreenEditor] = useState(false);
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
 
   const activeFile = ide.files.find(f => f.id === ide.activeFileId);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 's') { e.preventDefault(); ide.saveFile(); }
+      if (e.ctrlKey && e.key === 'n') { e.preventDefault(); ide.createFile(); }
+      if (e.ctrlKey && e.key === 'o') { e.preventDefault(); ide.openLocalFile(); }
+      if (e.ctrlKey && e.key === 'l') { e.preventDefault(); ide.clearConsole(); }
+      if (e.key === 'F5' && !e.shiftKey) { e.preventDefault(); handleRun(); }
+      if (e.key === 'F5' && e.shiftKey) { e.preventDefault(); handleStop(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [ide, activeFile]);
 
   // Run algorithm
   const handleRun = useCallback(async () => {
@@ -23,7 +40,9 @@ export default function IDELayout() {
     ide.clearConsole();
     ide.setIsRunning(true);
     ide.setVariables(new Map());
-    ide.addConsoleLine({ type: 'system', text: `▶ Exécution de ${activeFile.name}...`, timestamp: Date.now() });
+    setExecutionTime(null);
+    const startTime = performance.now();
+    ide.addConsoleLine({ type: 'system', text: `▶ Execution de ${activeFile.name}...`, timestamp: Date.now() });
 
     const interpreter = new AlgoInterpreter(activeFile.content, {
       onOutput: (text) => ide.addConsoleLine({ type: 'output', text, timestamp: Date.now() }),
@@ -44,9 +63,11 @@ export default function IDELayout() {
 
     interpreterRef.current = interpreter;
     await interpreter.run();
+    const elapsed = performance.now() - startTime;
+    setExecutionTime(elapsed);
     ide.setIsRunning(false);
     ide.setCurrentLine(null);
-    ide.addConsoleLine({ type: 'system', text: '✓ Exécution terminée.', timestamp: Date.now() });
+    ide.addConsoleLine({ type: 'system', text: `✓ Execution terminee en ${elapsed.toFixed(1)}ms.`, timestamp: Date.now() });
   }, [activeFile, ide]);
 
   const handleStop = useCallback(() => {
@@ -54,8 +75,17 @@ export default function IDELayout() {
     ide.setIsRunning(false);
     ide.setWaitingForInput(false);
     ide.setCurrentLine(null);
-    ide.addConsoleLine({ type: 'system', text: '⏹ Exécution arrêtée.', timestamp: Date.now() });
+    ide.addConsoleLine({ type: 'system', text: '⏹ Execution arretee.', timestamp: Date.now() });
   }, [ide]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!activeFile) return;
+    const id = Date.now().toString();
+    ide.createFile(`copie_${activeFile.name}`);
+  }, [activeFile, ide]);
+
+  const lineCount = activeFile?.content.split('\n').length || 0;
+  const charCount = activeFile?.content.length || 0;
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
@@ -69,9 +99,10 @@ export default function IDELayout() {
         <div className="h-5 w-px bg-border mx-1" />
 
         {/* File actions */}
-        <ToolbarBtn icon={<FilePlus size={15} />} label="Nouveau" onClick={ide.createFile} />
-        <ToolbarBtn icon={<FolderOpen size={15} />} label="Ouvrir" onClick={ide.openLocalFile} />
-        <ToolbarBtn icon={<Save size={15} />} label="Sauvegarder" onClick={() => ide.saveFile()} />
+        <ToolbarBtn icon={<FilePlus size={15} />} label="Nouveau (Ctrl+N)" onClick={() => ide.createFile()} shortcut="Ctrl+N" />
+        <ToolbarBtn icon={<FolderOpen size={15} />} label="Ouvrir (Ctrl+O)" onClick={ide.openLocalFile} shortcut="Ctrl+O" />
+        <ToolbarBtn icon={<Save size={15} />} label="Sauvegarder (Ctrl+S)" onClick={() => ide.saveFile()} shortcut="Ctrl+S" />
+        <ToolbarBtn icon={<Copy size={15} />} label="Dupliquer" onClick={handleDuplicate} />
 
         <div className="h-5 w-px bg-border mx-1" />
 
@@ -81,26 +112,51 @@ export default function IDELayout() {
           disabled={ide.isRunning}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-primary/15 text-primary hover:bg-primary/25 disabled:opacity-40 transition-colors"
         >
-          <Play size={13} fill="currentColor" /> Exécuter
+          <Play size={13} fill="currentColor" /> Executer
         </button>
         <button
           onClick={handleStop}
           disabled={!ide.isRunning}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-destructive/15 text-destructive hover:bg-destructive/25 disabled:opacity-40 transition-colors"
         >
-          <Square size={13} fill="currentColor" /> Arrêter
+          <Square size={13} fill="currentColor" /> Arreter
         </button>
+
+        <div className="h-5 w-px bg-border mx-1" />
+
+        <ToolbarBtn
+          icon={fullscreenEditor ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+          label={fullscreenEditor ? 'Quitter plein ecran' : 'Plein ecran'}
+          onClick={() => setFullscreenEditor(!fullscreenEditor)}
+        />
 
         <div className="flex-1" />
 
+        {/* Status indicators */}
+        <div className="hidden md:flex items-center gap-3 mr-2 text-xs text-muted-foreground">
+          {executionTime !== null && (
+            <span className="flex items-center gap-1">
+              <Timer size={12} /> {executionTime.toFixed(1)}ms
+            </span>
+          )}
+          {ide.isRunning && (
+            <span className="flex items-center gap-1 text-primary">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> En cours...
+            </span>
+          )}
+        </div>
+
         {/* Variables display */}
         {ide.variables.size > 0 && (
-          <div className="hidden md:flex items-center gap-2 mr-2">
+          <div className="hidden lg:flex items-center gap-2 mr-2">
             {Array.from(ide.variables.entries()).slice(0, 4).map(([k, v]) => (
               <span key={k} className="text-xs font-code bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
                 {k}=<span className="text-foreground">{JSON.stringify(v)}</span>
               </span>
             ))}
+            {ide.variables.size > 4 && (
+              <span className="text-xs text-muted-foreground">+{ide.variables.size - 4}</span>
+            )}
           </div>
         )}
       </div>
@@ -120,12 +176,18 @@ export default function IDELayout() {
             onClick={() => ide.setSidebarPanel(ide.sidebarPanel === 'courses' ? null : 'courses')}
             tooltip="Cours"
           />
+          <SidebarIcon
+            icon={<Braces size={20} />}
+            active={ide.sidebarPanel === 'variables'}
+            onClick={() => ide.setSidebarPanel(ide.sidebarPanel === 'variables' ? null : 'variables')}
+            tooltip="Variables"
+          />
           <div className="flex-1" />
           <SidebarIcon
             icon={<Settings size={20} />}
             active={settingsOpen}
             onClick={() => setSettingsOpen(true)}
-            tooltip="Paramètres"
+            tooltip="Parametres"
           />
         </div>
 
@@ -134,6 +196,7 @@ export default function IDELayout() {
           <div className="w-56 bg-ide-sidebar border-r border-border flex flex-col overflow-hidden">
             {ide.sidebarPanel === 'files' && <FileExplorer />}
             {ide.sidebarPanel === 'courses' && <CoursesPanel />}
+            {ide.sidebarPanel === 'variables' && <VariablesPanel />}
           </div>
         )}
 
@@ -167,9 +230,22 @@ export default function IDELayout() {
           {/* Editor */}
           <EditorPanel />
 
-          {/* Console */}
-          <ConsolePanel />
+          {/* Console (hidden in fullscreen) */}
+          {!fullscreenEditor && <ConsolePanel />}
         </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="h-6 min-h-[24px] bg-ide-toolbar border-t border-border flex items-center px-3 text-[10px] text-muted-foreground gap-4">
+        <span className="flex items-center gap-1">
+          <Hash size={10} /> Lignes: {lineCount}
+        </span>
+        <span>Caracteres: {charCount}</span>
+        {activeFile && <span>{activeFile.name}</span>}
+        <div className="flex-1" />
+        <span>{ide.settings.theme.name}</span>
+        <span>UTF-8</span>
+        <span>Algo</span>
       </div>
 
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
@@ -178,7 +254,7 @@ export default function IDELayout() {
 }
 
 // Sub-components
-function ToolbarBtn({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function ToolbarBtn({ icon, label, onClick, shortcut }: { icon: React.ReactNode; label: string; onClick: () => void; shortcut?: string }) {
   return (
     <button
       onClick={onClick}
@@ -186,7 +262,7 @@ function ToolbarBtn({ icon, label, onClick }: { icon: React.ReactNode; label: st
       title={label}
     >
       {icon}
-      <span className="hidden lg:inline">{label}</span>
+      <span className="hidden xl:inline">{label.split(' (')[0]}</span>
     </button>
   );
 }
@@ -236,15 +312,38 @@ function FileExplorer() {
   );
 }
 
+function VariablesPanel() {
+  const { variables } = useIDE();
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-3 py-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Variables</span>
+      </div>
+      <div className="flex-1 overflow-auto ide-scrollbar">
+        {variables.size === 0 ? (
+          <p className="px-3 text-xs text-muted-foreground italic">Executez un algorithme pour voir les variables.</p>
+        ) : (
+          Array.from(variables.entries()).map(([k, v]) => (
+            <div key={k} className="flex items-center justify-between px-3 py-1.5 text-xs hover:bg-secondary/50">
+              <span className="text-foreground font-code">{k}</span>
+              <span className="text-primary font-code truncate max-w-[80px]">{JSON.stringify(v)}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CoursesPanel() {
   const courses = [
-    { title: '1. Variables et Types', desc: 'Entier, réel, chaîne, booléen' },
+    { title: '1. Variables et Types', desc: 'Entier, reel, chaine, booleen' },
     { title: '2. Structures conditionnelles', desc: 'Si, Sinon, FinSi' },
     { title: '3. Boucles', desc: 'Pour, TantQue' },
-    { title: '4. Tableaux', desc: 'Déclaration et parcours' },
-    { title: '5. Fonctions', desc: 'Paramètres et retour' },
-    { title: '6. Algorithmes de tri', desc: 'Sélection, insertion, bulle' },
-    { title: '7. Recherche', desc: 'Séquentielle et dichotomique' },
+    { title: '4. Tableaux', desc: 'Declaration et parcours' },
+    { title: '5. Fonctions', desc: 'Parametres et retour' },
+    { title: '6. Algorithmes de tri', desc: 'Selection, insertion, bulle' },
+    { title: '7. Recherche', desc: 'Sequentielle et dichotomique' },
   ];
 
   return (
